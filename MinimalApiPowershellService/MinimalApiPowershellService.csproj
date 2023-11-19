@@ -8,6 +8,7 @@
         <LangVersion>11</LangVersion>
     </PropertyGroup>
 <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.WindowsServices" Version="7.0.9" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.1" />
     <PackageReference Include="Microsoft.Management.Infrastructure.CimCmdlets" Version="7.3.6" />
