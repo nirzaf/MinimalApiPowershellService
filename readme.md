@@ -1,84 +1,90 @@
-# Dotnet 7 PowerShell Service
-A sample project to run PowerShell in a Dotnet 7 windows service.
+# Dotnet 7 PowerShell Service Tutorial
+This tutorial will guide you through the process of running PowerShell commands from a Dotnet 7 windows service. The service is set up to respond to PowerShell commands that are activated by a GET request on an API. The example project will execute a PowerShell script based on the parameter provided and display the result, along with the current user and timestamp, in a web browser. This result is also written to a file in the `C:\\temp` directory. Additionally, Windows event logging has been enabled in the `appsettings.json` file.
 
-This simple project shows running PowerShell commands from a windows 
-service that are activated by a GET request on an API. The service passes
-a parameter to the PowerShell script and displays that with the current 
-user and time in the browser, as well as writing this data to a file in 
-c:\temp. Windows event logging has been enabled in ``appsettings.json``
+## Prerequisites
+- Dotnet 7
+- Windows OS
+- Rider IDE
 
-It is import to target a specific OS in the configuration. Targeting 
-generic win-64 will not allow powershell to work. At this time, single file publishing also 
-does not work.
+## Initial Configuration
+The service is highly configurable and relies on the `appsettings.json` file for such settings. The specific port the service relies on is also defined within this file. Please note that the `appsettings.Development.json` file may have different port configurations that apply only in the development environment.
 
-### Configure
-The port used by the service is specified in ``appsettings.json``. Note that different ports are configured in ``appsettings.Development.json``.
-#### Secure access to the API
-With the posted configuration, the service API is only accessible from localhost using http.  If you need the service to 
-be available from other machines on your network, I would recommend preventing eavesdropping by configuring use of an 
-SSL certificate.  
-1. Install the certificate in the Windows Certificate Store using `certmgr.exe` into the Personal store
-2. Get the location and validate the path with this powershell command. Note the location LocalMachine\\**My** and the private key is available:
+## Ensuring Secure API Access
+By default, the service's API is only accessible locally via HTTP. For broader accessibility, like for machines on your network, it's advised to configure use of an SSL certificate. This ameliorates the risk of eavesdropping.
 
-````
-PS C:\> Get-ChildItem -Path cert:\ -Recurse | Where-Object { $_.Subject -imatch "desk.domain.com" } | Select Subject, HasPrivateKey, PsParentPath
+Follow these steps to configure an SSL certificate:
 
-Subject            HasPrivateKey PSParentPath
--------            ------------- ------------
-CN=desk.domain.com          True Microsoft.PowerShell.Security\Certificate::LocalMachine\My
-````
+1. Install the certificate in the Windows Certificate Store using `certmgr.exe` to the Personal store.
 
-3. Add the FQDN from the certificate to AllowedHosts in `appsettings.json`:
+2. Validate the location and the path of the certificate with this PowerShell command:
 
-``"AllowedHosts": "desk.domain.com;localhost"``
+   ```Powershell
+    PS C:\> Get-ChildItem -Path cert:\ -Recurse | Where-Object { $_.Subject -imatch "desk.domain.com" } | Select Subject, HasPrivateKey, PsParentPath
+   ```
 
-4. Add an HTTPS entry:
+   This command will return the subject, private key status, and parent path of the installed certificate.
 
-```
-  "Kestrel": {
-    "Endpoints": {
-      "Http": {
-        "Url": "http://localhost:5400"
-      },
-      "Https": {
-        "Url": "https://desk.domain.com:5401",
-        "Certificate": {
-          "Subject": "desk.domain.com",
-          "Store": "My",
-          "Location": "LocalMachine",
-          "AllowInvalid": false
+3.  Add the Fully Qualified Domain Name (FQDN) from the certificate to the `AllowedHosts` in `appsettings.json`:
+
+    ``"AllowedHosts": "desk.domain.com;localhost"``
+
+4. Add an HTTPS entry under the "Kestrel" section in the `appsettings.json`:
+
+    ```json
+   {
+      "Kestrel": {
+        "Endpoints": {
+          "Http": {
+            "Url": "http://localhost:5400"
+          },
+          "Https": {
+            "Url": "https://desk.domain.com:5401",
+            "Certificate": {
+              "Subject": "desk.domain.com",
+              "Store": "My",
+              "Location": "LocalMachine",
+              "AllowInvalid": false
+            }
+          }
         }
       }
-    }
-  }
+   }
+    ```
 
-```
+## Publishing the Project
+To consolidate the project into a distributable format, mark the project as self-contained and target a specific OS runtime. Use the generic `win-x64` runtime.
 
-### Publish
-To publish the project, mark the project as self contained and target 
-the specific OS runtime. Generic win-x64 will fail.
+   ```Powershell
+   dotnet publish -o C:\Services\MinimalApiPowershellService\ --sc --runtime win10-x64
+   ```
 
-``dotnet publish -o C:\Services\MinimalApiPowershellService\ --sc --runtime win10-x64``
+Rider users can also use the publishing profile found in the IDE navigation panel:
 
-This is the publishing profile in Rider:
 ![Rider Publish Configuration](riderPublish.png)
 
-### Create a service
-Finally, create a service on your windows system using this command:
+## Creating a Windows Service
+Once the project is published, it's time to create the actual service. The command to accomplish this is:
 
-``sc create "MinimalApiPowershellService" binpath="c:\Services\MinimalApiPowershellService\MinimalApiPowershellService.exe"``
+   ```Powershell
+   sc create "MinimalApiPowershellService" binpath="c:\Services\MinimalApiPowershellService\MinimalApiPowershellService.exe"
+   ```
+
+This creates MinimalApiPowershellService:
+
 ![Create the service](serviceCreate.png)
 
-Once the service is created you can start it right away, or configure it 
-to run under specific user context. When running under a specific user context, make sure to check the permissions 
-for this user.
+After successful creation, you can choose to start it right away or specify a user context it should run under. Make sure the chosen user's permissions are appropriate for running the service.
 
-### Test
-With the service running you can test it by connecting to 
-http://localhost:5400 from a web browser or a PowerShell 
-command ``Invoke-WebRequest -Uri "http://localhost:5400"``
+## Testing the Service
+To verify the service works as expected, navigate to `http://localhost:5400` in your web browser or use the following PowerShell command:
+
+   ```Powershell
+   Invoke-WebRequest -Uri "http://localhost:5400"
+   ```
+
+A successful response should look like this:
 
 ![Results from the service running](serviceResults.png)
 
-### Troubleshooting
-If the service will not run, check the event log for any errors.
+## Troubleshooting
+If you encounter difficulties running the service, consult the Windows Event Log for possible errors. It collects detailed information about system events that could be integral in diagnosing the issue.
