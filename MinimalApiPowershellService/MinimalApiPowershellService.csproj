@@ -6,11 +6,12 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
         <LangVersion>11</LangVersion>
+        <SelfContained>true</SelfContained>
     </PropertyGroup>
 <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.WindowsServices" Version="7.0.14" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
     <PackageReference Include="Microsoft.Management.Infrastructure.CimCmdlets" Version="7.3.10" />
     <PackageReference Include="Microsoft.PowerShell.Commands.Diagnostics" Version="7.3.10" />
     <PackageReference Include="Microsoft.PowerShell.Commands.Management" Version="7.3.10" />
