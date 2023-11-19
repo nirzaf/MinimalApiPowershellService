@@ -19,13 +19,11 @@ var app = builder.Build();
 app.MapGet("/", () =>
 {
     var scriptResponse = new List<string?>();
-    const string powerShellScript = @"
-param($RequestId = 'DefaultValue')
-$env:USERNAME + ""`n"" + $RequestId | Out-File (""c:\Temp\$([DateTime]::Now.ToString(""yyyyMMdd_HHmmss"")).txt"")
-Write-Output $RequestId
-Write-Output $ENV:UserName
-Write-Output $([DateTime]::Now)
-";
+    const string powerShellScript = @"param($RequestId = 'DefaultValue')
+    $env:USERNAME + ""`n"" + $RequestId | Out-File (""c:\Temp\$([DateTime]::Now.ToString(""yyyyMMdd_HHmmss"")).txt"")
+    Write-Output $RequestId
+    Write-Output $ENV:UserName
+    Write-Output $([DateTime]::Now)";
 
     var initialSessionState = InitialSessionState.CreateDefault();
     initialSessionState.ExecutionPolicy = ExecutionPolicy.Unrestricted;
